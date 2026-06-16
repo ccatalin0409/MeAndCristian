@@ -136,13 +136,49 @@ public/                      manifest.webmanifest, sw.js, icons/
 
 Strategia de date (vezi și secțiunea 6 din `docs/SPEC.md`), de la simplu la complex:
 
-1. **Manual** (acum): introduci 30–50 evenimente bune/săptămână din `/admin`. Garantezi calitatea.
-2. **Eventbrite API** (legal, gratuit cu API key) — prima sursă automată.
-3. **Scrapere ușoare** pentru iaBilet, Eventim și pagini de venue mari (Arenele Romane,
-   Sala Palatului, Control Club etc.). Fiecare sursă în tabelul `sources`, deduplicare pe
-   `external_id`.
-4. **Parteneri & organizatori** care își trimit singuri evenimentele (Faza 2).
+1. **Manual** (oricând): introduci evenimente bune din `/admin`. Garantezi calitatea.
+2. **Scraping automat** (implementat): sistemul de ingestie din `src/lib/ingest/`.
+   - **iaBilet** — sursa #1 ca volum. Citim datele structurate `schema.org/Event`
+     (JSON-LD) de pe pagina de listare București — fără parsare fragilă de HTML.
+     `robots.txt` permite paginile de listare/eveniment (verificat).
+   - **Adaptor generic JSON-LD** — adaugi orice venue care publică `schema.org/Event`
+     doar cu o configurație în `src/lib/ingest/sources/index.ts` (fără cod nou).
+3. **Parteneri & organizatori** care își trimit singuri evenimentele (Faza 2).
+
+> ❌ **Eventbrite API nu merge** pentru agregare: căutarea publică a fost închisă în
+> 2019, acum vezi doar evenimentele propriei organizații. Nu-l folosim.
+>
+> ❌ **Facebook Events** — fără API public, contra ToS. Evitat.
+
+### Cum rulezi ingestia
+
+Necesită Supabase configurat (vezi mai sus) + `SUPABASE_SERVICE_ROLE_KEY` în `.env.local`.
+
+```bash
+npm run ingest                  # toate sursele → published
+npm run ingest iabilet          # doar iaBilet
+npm run ingest iabilet --dry    # preview, fără scriere în DB
+npm run ingest -- --status=draft  # importă ca draft (le aprobi din /admin)
+npm run ingest iabilet --max-pages=3
+npm run ingest -- --no-geocode  # sare peste geocodarea Nominatim
+```
+
+Deduplicare automată pe `(source_id, external_id)` — rulezi de câte ori vrei fără dubluri.
+Locurile noi primesc coordonate din venue-urile cunoscute sau prin geocodare gratuită
+(Nominatim/OpenStreetMap, 1 cerere/sec).
+
+### Ingestie programată (Vercel Cron)
+
+`vercel.json` rulează `/api/ingest` zilnic la 06:00. Setează în Vercel variabila
+`CRON_SECRET` (același secret protejează ruta). Manual: `GET /api/ingest?secret=...&source=iabilet`.
+
+### Cum adaugi o sursă nouă
+
+1. Verifică dacă pagina are JSON-LD: deschide sursa, caută `application/ld+json` cu `"@type":"Event"`.
+2. Dacă da → adaugă `createJsonLdSource({ key, label, urls })` în
+   `src/lib/ingest/sources/index.ts` și testează cu `npm run ingest <key> --dry`.
+3. Dacă nu → scrie un adaptor dedicat după modelul `sources/iabilet.ts`.
 
 ⚠️ Legal: respectă `robots.txt` și termenii fiecărui site; păstrează titlu/dată/loc/link +
-descriere scurtă. Evită Facebook Events (fără API public, contra ToS). Preferă feed-uri
-oficiale și parteneriate.
+descriere scurtă; UA identificabil și fără rafale (vezi `src/lib/ingest/http.ts`).
+Preferă feed-uri oficiale și parteneriate.
