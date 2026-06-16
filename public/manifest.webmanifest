@@ -1,0 +1,24 @@
+{
+  "name": "Ce fac în oraș",
+  "short_name": "Ce fac în oraș",
+  "description": "Tot ce se întâmplă în oraș, într-un singur loc.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f7f8",
+  "theme_color": "#6d28d9",
+  "lang": "ro",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
