@@ -10,6 +10,12 @@ export interface ActiveFilters {
   free: boolean;
   nearMe: boolean;
   categorySlug: string | null;
+  // Interval personalizat ales de utilizator, ca "YYYY-MM-DD" (sau null).
+  // Oricare capăt poate lipsi (interval deschis la stânga/dreapta).
+  dateFrom: string | null;
+  dateTo: string | null;
+  // Preț maxim (lei). null = fără limită.
+  maxPrice: number | null;
 }
 
 export const EMPTY_FILTERS: ActiveFilters = {
@@ -17,7 +23,26 @@ export const EMPTY_FILTERS: ActiveFilters = {
   free: false,
   nearMe: false,
   categorySlug: null,
+  dateFrom: null,
+  dateTo: null,
+  maxPrice: null,
 };
+
+// Prețul de intrare (cel mai mic preț la care poți intra), în lei.
+// null = necunoscut („la fața locului"), deci nu îl includem la filtrul de buget.
+function entryPrice(e: EventWithRelations): number | null {
+  if (e.is_free) return 0;
+  if (e.price_min != null) return e.price_min;
+  if (e.price_max != null) return e.price_max;
+  return null;
+}
+
+// Transformă un "YYYY-MM-DD" în Date la 00:00 ora locală (nu UTC),
+// ca să nu apară decalaje de fus orar.
+function localDateStart(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d, 0, 0, 0, 0);
+}
 
 function startOfDay(d: Date): Date {
   const x = new Date(d);
@@ -91,8 +116,32 @@ export function applyFilters(
     });
   }
 
+  // Interval personalizat (de la / până la). Capătul "to" e inclusiv:
+  // includem toată ziua selectată, deci comparăm cu începutul zilei următoare.
+  if (filters.dateFrom || filters.dateTo) {
+    const from = filters.dateFrom ? localDateStart(filters.dateFrom) : null;
+    let to: Date | null = null;
+    if (filters.dateTo) {
+      to = localDateStart(filters.dateTo);
+      to.setDate(to.getDate() + 1);
+    }
+    result = result.filter((e) => {
+      const t = new Date(e.starts_at).getTime();
+      if (from && t < from.getTime()) return false;
+      if (to && t >= to.getTime()) return false;
+      return true;
+    });
+  }
+
   if (filters.free) {
     result = result.filter((e) => e.is_free);
+  }
+
+  if (filters.maxPrice != null) {
+    result = result.filter((e) => {
+      const p = entryPrice(e);
+      return p != null && p <= filters.maxPrice!;
+    });
   }
 
   if (filters.categorySlug) {

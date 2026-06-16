@@ -12,6 +12,20 @@
   --free: #16a34a;
 }
 
+/* Modul întunecat: aceleași variabile, alte valori.
+   Se activează când <html> are atributul data-theme="dark". */
+[data-theme="dark"] {
+  --background: #0f0f12;
+  --surface: #1a1a1f;
+  --foreground: #f4f4f5;
+  --muted: #9ca3af;
+  --border: #2a2a31;
+  --primary: #8b5cf6; /* violet mai luminos pe fundal închis */
+  --primary-foreground: #ffffff;
+  --accent: #f472b6;
+  --free: #22c55e;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);

@@ -1,26 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
+import { useState } from "react";
 import type { Category, EventWithRelations } from "@/types";
-import {
-  EMPTY_FILTERS,
-  applyFilters,
-  type ActiveFilters,
-  type UserLocation,
-} from "@/lib/filters";
+import { useEventFilters } from "@/lib/useEventFilters";
 import EventCard from "@/components/EventCard";
+import EventRow from "@/components/EventRow";
 import FilterChips from "@/components/FilterChips";
-
-// Harta folosește Leaflet (doar pe client) — fără SSR.
-const MapView = dynamic(() => import("@/components/MapView"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[60vh] rounded-2xl bg-surface border border-border grid place-items-center text-muted">
-      Se încarcă harta…
-    </div>
-  ),
-});
 
 interface Props {
   events: EventWithRelations[];
@@ -28,32 +13,8 @@ interface Props {
 }
 
 export default function FeedClient({ events, categories }: Props) {
-  const [filters, setFilters] = useState<ActiveFilters>(EMPTY_FILTERS);
-  const [location, setLocation] = useState<UserLocation | null>(null);
-  const [locating, setLocating] = useState(false);
-  const [view, setView] = useState<"list" | "map">("list");
-
-  // Cere geolocația când userul activează „Lângă mine".
-  useEffect(() => {
-    if (!filters.nearMe || location || !("geolocation" in navigator)) return;
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocating(false);
-      },
-      () => {
-        setLocating(false);
-        setFilters((f) => ({ ...f, nearMe: false }));
-        alert("Nu am putut accesa locația. Verifică permisiunile.");
-      }
-    );
-  }, [filters.nearMe, location]);
-
-  const filtered = useMemo(
-    () => applyFilters(events, filters, location),
-    [events, filters, location]
-  );
+  const { filters, setFilters, locating, filtered } = useEventFilters(events);
+  const [view, setView] = useState<"grid" | "list">("grid");
 
   return (
     <div className="space-y-3">
@@ -71,6 +32,14 @@ export default function FeedClient({ events, categories }: Props) {
         </p>
         <div className="flex rounded-full border border-border bg-surface p-0.5 text-sm">
           <button
+            onClick={() => setView("grid")}
+            className={`px-3 py-1 rounded-full ${
+              view === "grid" ? "bg-primary text-primary-foreground" : "text-muted"
+            }`}
+          >
+            Grilă
+          </button>
+          <button
             onClick={() => setView("list")}
             className={`px-3 py-1 rounded-full ${
               view === "list" ? "bg-primary text-primary-foreground" : "text-muted"
@@ -78,25 +47,21 @@ export default function FeedClient({ events, categories }: Props) {
           >
             Listă
           </button>
-          <button
-            onClick={() => setView("map")}
-            className={`px-3 py-1 rounded-full ${
-              view === "map" ? "bg-primary text-primary-foreground" : "text-muted"
-            }`}
-          >
-            Hartă
-          </button>
         </div>
       </div>
 
-      {view === "map" ? (
-        <MapView events={filtered} userLocation={location} />
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <EmptyState />
-      ) : (
+      ) : view === "grid" ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((e) => (
             <EventCard key={e.id} event={e} />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((e) => (
+            <EventRow key={e.id} event={e} />
           ))}
         </div>
       )}

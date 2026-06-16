@@ -3,7 +3,7 @@ import type { EventWithRelations } from "@/types";
 import { formatPrice, formatWhen } from "@/lib/format";
 
 // Emoji per categorie pentru placeholder vizual când nu există imagine.
-const CATEGORY_EMOJI: Record<string, string> = {
+export const CATEGORY_EMOJI: Record<string, string> = {
   concerte: "🎵",
   "stand-up": "🎤",
   teatru: "🎭",
