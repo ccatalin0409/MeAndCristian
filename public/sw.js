@@ -1,7 +1,7 @@
 // Service worker minimal pentru PWA „Ce fac în oraș".
 // Strategie: network-first cu fallback la cache pentru navigări (offline de bază).
 
-const CACHE = "cfio-v1";
+const CACHE = "cfio-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();

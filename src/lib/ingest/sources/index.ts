@@ -9,7 +9,16 @@ import { iabilet } from "./iabilet";
 import { createJsonLdSource } from "./jsonld-generic";
 
 // Surse verificate că funcționează.
-const VERIFIED: SourceAdapter[] = [iabilet];
+const VERIFIED: SourceAdapter[] = [
+  iabilet,
+  // Teatrul Odeon publică schema.org/Event în JSON-LD pe homepage.
+  createJsonLdSource({
+    key: "teatrul-odeon",
+    label: "Teatrul Odeon",
+    urls: ["https://www.teatrul-odeon.ro/"],
+    defaultCategory: "teatru",
+  }),
+];
 
 // Surse experimentale (venue-uri care POATE au JSON-LD). Decomentează/adaugă după test.
 const EXPERIMENTAL: SourceAdapter[] = [

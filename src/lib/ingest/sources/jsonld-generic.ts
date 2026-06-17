@@ -112,7 +112,11 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
           out.push({
             source: config.key,
             externalId: id,
-            title: ld.name.trim(),
+            // normalizează spațiile și taie ratingul de vârstă din coadă ("| 16 +")
+            title: ld.name
+              .replace(/\s+/g, " ")
+              .replace(/\s*\|\s*\d+\s*\+\s*$/, "")
+              .trim(),
             description: ld.description?.trim() || null,
             ticketUrl: ld.url ?? config.urls[i],
             startsAt,
