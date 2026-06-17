@@ -7,6 +7,7 @@ import { politeFetch, sleep } from "../http";
 import { extractEvents } from "../jsonld";
 import { toBucharestISO } from "../datetime";
 import { guessCategory, looksFree } from "../categorize";
+import { cleanText } from "../text";
 
 const BASE = "https://www.iabilet.ro";
 const LISTING = `${BASE}/bilete-bucuresti/`;
@@ -72,11 +73,11 @@ function mapEvent(ld: LdEvent): RawEvent | null {
   const startsAt = toBucharestISO(ld.startDate);
   if (!startsAt) return null;
 
+  const description = cleanText(ld.description);
   const place = firstPlace(ld.location);
   const offer = firstOffer(ld.offers);
   const price = parsePrice(offer?.price);
-  const free =
-    price === 0 || (price == null && looksFree(title, ld.description ?? null));
+  const free = price === 0 || (price == null && looksFree(title, description));
   const address = place?.address
     ? [place.address.streetAddress, place.address.addressLocality]
         .filter(Boolean)
@@ -87,7 +88,7 @@ function mapEvent(ld: LdEvent): RawEvent | null {
     source: "iabilet",
     externalId,
     title,
-    description: ld.description?.trim() || null,
+    description,
     ticketUrl: url,
     startsAt,
     endsAt: ld.endDate ? toBucharestISO(ld.endDate, 23) : null,
@@ -98,7 +99,7 @@ function mapEvent(ld: LdEvent): RawEvent | null {
     venueName: place?.name?.trim() || null,
     venueAddress: address,
     citySlug: "bucuresti",
-    categorySlug: guessCategory(title, ld.description ?? null),
+    categorySlug: guessCategory(title, description),
   };
 }
 
