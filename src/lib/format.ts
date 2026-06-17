@@ -57,10 +57,11 @@ export function formatWhen(iso: string): string {
   return `${formatDayLabel(iso)} · ${formatTime(iso)}`;
 }
 
-// „Gratis", „120 lei", „120–250 lei".
+// „Gratis", „120 lei", „120–250 lei", „Preț pe site" (când nu-l știm).
 export function formatPrice(e: EventWithRelations): string {
   if (e.is_free) return "Gratis";
-  if (e.price_min == null && e.price_max == null) return "Preț la fața locului";
+  // Preț necunoscut — nu-l inventăm; trimitem la sursă.
+  if (e.price_min == null && e.price_max == null) return "Preț pe site";
   if (e.price_min != null && e.price_max != null && e.price_min !== e.price_max) {
     return `${e.price_min}–${e.price_max} lei`;
   }

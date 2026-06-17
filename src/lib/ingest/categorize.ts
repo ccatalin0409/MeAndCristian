@@ -38,14 +38,5 @@ export function guessCategory(
   return null;
 }
 
-// Detectează evenimentele gratuite din text (multe surse nu au preț în date,
-// dar scriu „intrare liberă / gratuit" în titlu/descriere).
-const FREE_RE =
-  /intrare liber[ăa]|intrare gratuit[ăa]|acces (?:liber|gratuit)|gratuit|gratis|free (?:entry|admission)/i;
-const NOT_FREE_RE = /nu (?:e|este|sunt) gratuit|contra cost/i;
-
-export function looksFree(title: string, description: string | null): boolean {
-  const text = `${title} ${description ?? ""}`;
-  if (NOT_FREE_RE.test(text)) return false;
-  return FREE_RE.test(text);
-}
+// Notă: detecția „gratis" + parsarea prețului s-au mutat în ./pricing.ts
+// (resolvePricing), ca să fie o singură logică pentru toate sursele.

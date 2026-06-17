@@ -6,7 +6,8 @@ import type { RawEvent, SourceAdapter } from "../types";
 import { politeFetch, sleep } from "../http";
 import { extractEvents } from "../jsonld";
 import { toBucharestISO } from "../datetime";
-import { guessCategory, looksFree } from "../categorize";
+import { guessCategory } from "../categorize";
+import { resolvePricing } from "../pricing";
 import { cleanText, cleanTitle } from "../text";
 
 export interface JsonLdSourceConfig {
@@ -111,11 +112,11 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
               : null;
 
           const description = cleanText(ld.description);
-          const price = parsePrice(asOne(ld.offers)?.price);
-          // Gratuit dacă prețul e 0, sau dacă nu există preț dar textul spune
-          // „intrare liberă / gratuit".
-          const free =
-            price === 0 || (price == null && looksFree(title, description));
+          const pricing = resolvePricing({
+            offerPrice: parsePrice(asOne(ld.offers)?.price),
+            title,
+            description,
+          });
           const img = Array.isArray(ld.image) ? ld.image[0] : ld.image;
 
           out.push({
@@ -129,9 +130,9 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
             startsAt,
             endsAt: ld.endDate ? toBucharestISO(ld.endDate, 23) : null,
             imageUrl: img ?? null,
-            priceMin: free ? 0 : price,
-            priceMax: free ? 0 : price,
-            isFree: free,
+            priceMin: pricing.priceMin,
+            priceMax: pricing.priceMax,
+            isFree: pricing.isFree,
             venueName: place?.name?.trim() || config.label,
             venueAddress: venueAddress || null,
             citySlug,

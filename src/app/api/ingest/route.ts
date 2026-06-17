@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { ADAPTERS, getAdapter } from "@/lib/ingest/sources";
 import { ingestEvents } from "@/lib/ingest/upsert";
+import { dedupeEvents } from "@/lib/ingest/dedupe";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -61,5 +62,16 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, results });
+  // Dedup cross-sursă doar când rulăm toate sursele (nu la o sursă singură).
+  let dedup: { removed: number; groups: number } | { error: string } | null =
+    null;
+  if (!sourceKey) {
+    try {
+      dedup = await dedupeEvents(db);
+    } catch (e) {
+      dedup = { error: (e as Error).message };
+    }
+  }
+
+  return NextResponse.json({ ok: true, results, dedup });
 }

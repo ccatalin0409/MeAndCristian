@@ -12,6 +12,7 @@ import { config } from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { ADAPTERS, getAdapter } from "../src/lib/ingest/sources";
 import { ingestEvents } from "../src/lib/ingest/upsert";
+import { dedupeEvents } from "../src/lib/ingest/dedupe";
 import type { SourceAdapter } from "../src/lib/ingest/types";
 
 config({ path: ".env.local" });
@@ -83,6 +84,16 @@ async function main() {
       console.log(
         `${stats.fetched} găsite → ${stats.inserted} noi, ${stats.updated} actualizate, ${stats.errors} erori`
       );
+    } catch (e) {
+      console.log(`EROARE: ${(e as Error).message}`);
+    }
+  }
+
+  if (!dryRun) {
+    process.stdout.write("• Dedup … ");
+    try {
+      const { removed, groups } = await dedupeEvents(db);
+      console.log(`${groups} grupuri, ${removed} duplicate șterse`);
     } catch (e) {
       console.log(`EROARE: ${(e as Error).message}`);
     }

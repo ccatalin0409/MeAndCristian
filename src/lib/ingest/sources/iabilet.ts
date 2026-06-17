@@ -6,7 +6,8 @@ import type { RawEvent, SourceAdapter } from "../types";
 import { politeFetch, sleep } from "../http";
 import { extractEvents } from "../jsonld";
 import { toBucharestISO } from "../datetime";
-import { guessCategory, looksFree } from "../categorize";
+import { guessCategory } from "../categorize";
+import { resolvePricing } from "../pricing";
 import { cleanText, cleanTitle } from "../text";
 
 const BASE = "https://www.iabilet.ro";
@@ -76,8 +77,11 @@ function mapEvent(ld: LdEvent): RawEvent | null {
   const description = cleanText(ld.description);
   const place = firstPlace(ld.location);
   const offer = firstOffer(ld.offers);
-  const price = parsePrice(offer?.price);
-  const free = price === 0 || (price == null && looksFree(title, description));
+  const pricing = resolvePricing({
+    offerPrice: parsePrice(offer?.price),
+    title,
+    description,
+  });
   const address = place?.address
     ? [place.address.streetAddress, place.address.addressLocality]
         .filter(Boolean)
@@ -93,9 +97,9 @@ function mapEvent(ld: LdEvent): RawEvent | null {
     startsAt,
     endsAt: ld.endDate ? toBucharestISO(ld.endDate, 23) : null,
     imageUrl: firstImage(ld.image),
-    priceMin: free ? 0 : price,
-    priceMax: free ? 0 : price,
-    isFree: free,
+    priceMin: pricing.priceMin,
+    priceMax: pricing.priceMax,
+    isFree: pricing.isFree,
     venueName: place?.name?.trim() || null,
     venueAddress: address,
     citySlug: "bucuresti",
