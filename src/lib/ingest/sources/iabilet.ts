@@ -7,7 +7,7 @@ import { politeFetch, sleep } from "../http";
 import { extractEvents } from "../jsonld";
 import { toBucharestISO } from "../datetime";
 import { guessCategory, looksFree } from "../categorize";
-import { cleanText } from "../text";
+import { cleanText, cleanTitle } from "../text";
 
 const BASE = "https://www.iabilet.ro";
 const LISTING = `${BASE}/bilete-bucuresti/`;
@@ -64,7 +64,7 @@ function externalIdFromUrl(url: string): string | null {
 
 function mapEvent(ld: LdEvent): RawEvent | null {
   const url = ld.url?.trim();
-  const title = ld.name?.trim();
+  const title = cleanTitle(ld.name);
   if (!url || !title || !ld.startDate) return null;
 
   const externalId = externalIdFromUrl(url);

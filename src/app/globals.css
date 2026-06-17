@@ -57,3 +57,17 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* iPhone în mod aplicație (standalone): lăsăm loc pentru crestătură și bara
+   „home" prin safe-area-inset. Pe alte ecrane env() = 0, deci nu strică nimic. */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+/* Conținutul principal: loc pentru bara de jos (5rem) + zona „home". */
+.pb-nav {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+}
+/* Bara de navigație: ridicăm conținutul deasupra barei „home". */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}

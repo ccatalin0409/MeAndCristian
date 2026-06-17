@@ -7,7 +7,7 @@ import { politeFetch, sleep } from "../http";
 import { extractEvents } from "../jsonld";
 import { toBucharestISO } from "../datetime";
 import { guessCategory, looksFree } from "../categorize";
-import { cleanText } from "../text";
+import { cleanText, cleanTitle } from "../text";
 
 export interface JsonLdSourceConfig {
   key: string;
@@ -87,6 +87,9 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
           const startsAt = toBucharestISO(ld.startDate);
           if (!startsAt) continue;
 
+          // ID-ul rămâne pe numele brut (stabilitate la re-ingestie); titlul
+          // afișat e curățat de HTML/entități.
+          const title = cleanTitle(ld.name) ?? ld.name;
           const id = externalId(ld.url, ld.name, ld.startDate);
           if (seen.has(id)) continue;
           seen.add(id);
@@ -112,19 +115,15 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
           // Gratuit dacă prețul e 0, sau dacă nu există preț dar textul spune
           // „intrare liberă / gratuit".
           const free =
-            price === 0 || (price == null && looksFree(ld.name, description));
+            price === 0 || (price == null && looksFree(title, description));
           const img = Array.isArray(ld.image) ? ld.image[0] : ld.image;
 
           out.push({
             source: config.key,
             externalId: id,
-            // NFKC: convertește caractere „fancy" Unicode (𝐑𝐞𝐠𝐢𝐧𝐞 -> Regine);
-            // apoi normalizează spațiile și taie ratingul de vârstă din coadă.
-            title: ld.name
-              .normalize("NFKC")
-              .replace(/\s+/g, " ")
-              .replace(/\s*\|\s*\d+\s*\+\s*$/, "")
-              .trim(),
+            // Titlu curățat (HTML/entități/NFKC); mai tăiem ratingul de vârstă
+            // din coadă (ex. „... | 12+").
+            title: title.replace(/\s*\|\s*\d+\s*\+\s*$/, "").trim(),
             description,
             ticketUrl: ld.url ?? config.urls[i],
             startsAt,
@@ -137,7 +136,7 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
             venueAddress: venueAddress || null,
             citySlug,
             categorySlug:
-              guessCategory(ld.name, description) ??
+              guessCategory(title, description) ??
               config.defaultCategory ??
               null,
           });
