@@ -16,6 +16,8 @@ export interface ActiveFilters {
   dateTo: string | null;
   // Preț maxim (lei). null = fără limită.
   maxPrice: number | null;
+  // Căutare liberă după titlu, descriere, locație.
+  search: string;
 }
 
 export const EMPTY_FILTERS: ActiveFilters = {
@@ -26,6 +28,7 @@ export const EMPTY_FILTERS: ActiveFilters = {
   dateFrom: null,
   dateTo: null,
   maxPrice: null,
+  search: "",
 };
 
 // Prețul de intrare (cel mai mic preț la care poți intra), în lei.
@@ -151,6 +154,16 @@ export function applyFilters(
   if (filters.categorySlug) {
     result = result.filter(
       (e) => e.category?.slug === filters.categorySlug
+    );
+  }
+
+  if (filters.search.trim()) {
+    const q = filters.search.trim().toLowerCase();
+    result = result.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.description?.toLowerCase().includes(q) ||
+        e.venue?.name?.toLowerCase().includes(q)
     );
   }
 
