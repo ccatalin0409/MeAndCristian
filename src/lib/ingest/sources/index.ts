@@ -7,6 +7,7 @@
 import type { SourceAdapter } from "../types";
 import { iabilet } from "./iabilet";
 import { createJsonLdSource } from "./jsonld-generic";
+import { detectEventOnFreeUrls } from "./eventon";
 
 // Surse verificate că funcționează.
 const VERIFIED: SourceAdapter[] = [
@@ -16,6 +17,8 @@ const VERIFIED: SourceAdapter[] = [
     key: "onevent",
     label: "OneEvent",
     urls: ["https://www.onevent.ro/orase/bucuresti/"],
+    // OneEvent (EventOn) marchează gratis cu tag-ul „Intrare liberă".
+    detectFreeUrls: detectEventOnFreeUrls,
   }),
   // Songkick — concerte din zona București (JSON-LD MusicEvent).
   createJsonLdSource({

@@ -9,6 +9,7 @@ import { toBucharestISO } from "../datetime";
 import { guessCategory } from "../categorize";
 import { resolvePricing } from "../pricing";
 import { cleanText, cleanTitle } from "../text";
+import { normUrl } from "./eventon";
 
 export interface JsonLdSourceConfig {
   key: string;
@@ -16,6 +17,10 @@ export interface JsonLdSourceConfig {
   urls: string[]; // una sau mai multe pagini de listare
   citySlug?: string; // implicit "bucuresti"
   defaultCategory?: string | null;
+  // Opțional: din HTML-ul paginii, întoarce URL-urile (normalizate cu normUrl)
+  // care sunt gratuite după un semnal structurat al sursei (ex. tag-ul
+  // „Intrare liberă" la EventOn/OneEvent). Suprascrie detecția de preț.
+  detectFreeUrls?: (html: string) => Set<string>;
 }
 
 interface LdEvent {
@@ -83,6 +88,9 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
           continue;
         }
 
+        // Semnal de gratis specific sursei (ex. tag „Intrare liberă" la OneEvent).
+        const freeUrls = config.detectFreeUrls?.(html) ?? null;
+
         for (const ld of extractEvents(html) as LdEvent[]) {
           if (!ld.name || !ld.startDate) continue;
           const startsAt = toBucharestISO(ld.startDate);
@@ -112,11 +120,16 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
               : null;
 
           const description = cleanText(ld.description);
-          const pricing = resolvePricing({
-            offerPrice: parsePrice(asOne(ld.offers)?.price),
-            title,
-            description,
-          });
+          // Tag-ul structurat „Intrare liberă" al sursei suprascrie orice altă
+          // detecție de preț.
+          const taggedFree = freeUrls?.has(normUrl(ld.url)) ?? false;
+          const pricing = taggedFree
+            ? { priceMin: 0, priceMax: 0, isFree: true }
+            : resolvePricing({
+                offerPrice: parsePrice(asOne(ld.offers)?.price),
+                title,
+                description,
+              });
           const img = Array.isArray(ld.image) ? ld.image[0] : ld.image;
 
           out.push({
