@@ -11,6 +11,19 @@ import { createJsonLdSource } from "./jsonld-generic";
 // Surse verificate că funcționează.
 const VERIFIED: SourceAdapter[] = [
   iabilet,
+  // OneEvent — agregator București, ~130 evenimente din toate categoriile (JSON-LD).
+  createJsonLdSource({
+    key: "onevent",
+    label: "OneEvent",
+    urls: ["https://www.onevent.ro/orase/bucuresti/"],
+  }),
+  // Songkick — concerte din zona București (JSON-LD MusicEvent).
+  createJsonLdSource({
+    key: "songkick",
+    label: "Songkick",
+    urls: ["https://www.songkick.com/metro-areas/31841-romania-bucharest"],
+    defaultCategory: "concerte",
+  }),
   // Teatrul Odeon publică schema.org/Event în JSON-LD pe homepage.
   createJsonLdSource({
     key: "teatrul-odeon",

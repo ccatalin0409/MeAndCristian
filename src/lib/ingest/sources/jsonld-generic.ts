@@ -112,8 +112,10 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
           out.push({
             source: config.key,
             externalId: id,
-            // normalizează spațiile și taie ratingul de vârstă din coadă ("| 16 +")
+            // NFKC: convertește caractere „fancy" Unicode (𝐑𝐞𝐠𝐢𝐧𝐞 -> Regine);
+            // apoi normalizează spațiile și taie ratingul de vârstă din coadă.
             title: ld.name
+              .normalize("NFKC")
               .replace(/\s+/g, " ")
               .replace(/\s*\|\s*\d+\s*\+\s*$/, "")
               .trim(),

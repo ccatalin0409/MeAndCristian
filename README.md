@@ -138,11 +138,15 @@ Strategia de date (vezi și secțiunea 6 din `docs/SPEC.md`), de la simplu la co
 
 1. **Manual** (oricând): introduci evenimente bune din `/admin`. Garantezi calitatea.
 2. **Scraping automat** (implementat): sistemul de ingestie din `src/lib/ingest/`.
-   - **iaBilet** — sursa #1 ca volum. Citim datele structurate `schema.org/Event`
-     (JSON-LD) de pe pagina de listare București — fără parsare fragilă de HTML.
-     `robots.txt` permite paginile de listare/eveniment (verificat).
-   - **Adaptor generic JSON-LD** — adaugi orice venue care publică `schema.org/Event`
-     doar cu o configurație în `src/lib/ingest/sources/index.ts` (fără cod nou).
+   Citim date structurate `schema.org/Event` (JSON-LD) — fără parsare fragilă de HTML.
+   Surse verificate (toate cu `robots.txt` care permite paginile noastre):
+   - **iaBilet** — sursa #1 ca volum (concerte, stand-up, teatru cu bilete).
+   - **OneEvent** — agregator București, ~130 evenimente din toate categoriile.
+   - **Songkick** — concerte din zona București (internaționale).
+   - **Teatrul Odeon** — spectacole de teatru.
+   - **Adaptor generic JSON-LD** — adaugi orice sursă care publică `schema.org/Event`
+     (sau sub-tipuri: MusicEvent, TheaterEvent…) doar cu o configurație în
+     `src/lib/ingest/sources/index.ts` (fără cod nou).
 3. **Parteneri & organizatori** care își trimit singuri evenimentele (Faza 2).
 
 > ❌ **Eventbrite API nu merge** pentru agregare: căutarea publică a fost închisă în

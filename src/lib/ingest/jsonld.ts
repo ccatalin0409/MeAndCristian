@@ -44,12 +44,15 @@ export function extractJsonLd(html: string): JsonLdObject[] {
   return out;
 }
 
-function typeMatches(type: string | string[] | undefined, want: string): boolean {
+// Recunoaște Event și toate sub-tipurile schema.org (MusicEvent, TheaterEvent,
+// ComedyEvent, DanceEvent, ScreeningEvent, ExhibitionEvent, Festival etc.).
+function isEventType(type: string | string[] | undefined): boolean {
   if (!type) return false;
-  return Array.isArray(type) ? type.includes(want) : type === want;
+  const list = Array.isArray(type) ? type : [type];
+  return list.some((t) => /Event$/.test(t) || t === "Festival");
 }
 
-// Doar obiectele de tip Event.
+// Toate obiectele de tip eveniment (inclusiv sub-tipuri).
 export function extractEvents(html: string): JsonLdObject[] {
-  return extractJsonLd(html).filter((o) => typeMatches(o["@type"], "Event"));
+  return extractJsonLd(html).filter((o) => isEventType(o["@type"]));
 }
