@@ -1,51 +1,53 @@
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
-import { politeFetch } from "../src/lib/ingest/http";
-import { extractEvents } from "../src/lib/ingest/jsonld";
+import { guessCategory } from "../src/lib/ingest/categorize";
 
 config({ path: ".env.local" });
-
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Songkick are defaultCategory "concerte" când guessCategory dă null.
+const DEFAULTS: Record<string, string> = { Songkick: "concerte", "Teatrul Odeon": "teatru" };
+
 async function main() {
   const { data } = await sb
     .from("events")
-    .select("title, description, ticket_url, is_free, price_min, price_max, source:sources(name)")
-    .ilike("title", "%Cenaclul Mariana Marin%")
-    .limit(1);
-  const e = (data ?? [])[0] as any;
-  if (!e) {
-    console.log("Nu am găsit evenimentul.");
-    return;
-  }
-  console.log("=== CE AVEM NOI ÎN DB ===");
-  console.log("titlu:", e.title);
-  console.log("sursa:", e.source?.name, "| ticket_url:", e.ticket_url);
-  console.log("is_free:", e.is_free, "| price_min:", e.price_min, "| price_max:", e.price_max);
-  console.log("descriere (lungime " + (e.description?.length ?? 0) + "):");
-  console.log("  ", (e.description ?? "(null)").slice(0, 400));
+    .select("title, description, source:sources(name)")
+    .order("title");
+  const rows = (data ?? []) as any[];
 
-  if (!e.ticket_url) return;
-  console.log("\n=== CE E PE PAGINA SURSĂ ===");
-  try {
-    const html = await politeFetch(e.ticket_url);
-    const evs = extractEvents(html) as any[];
-    const ld = evs.find((x) => x.name) ?? evs[0];
-    console.log("JSON-LD de pe pagina de detaliu:");
-    console.log("  offers:", JSON.stringify(ld?.offers));
-    console.log("  description (lungime " + (ld?.description?.length ?? 0) + "):");
-    console.log("   ", (ld?.description ?? "(null)").slice(0, 400));
-    // căutăm semnale în tot HTML-ul paginii
-    const hay = html.toLowerCase();
-    for (const w of ["intrare liber", "intrare gratuit", "gratuit", "gratis", "sold out", "epuizat", "stoc epuizat", "indisponibil"]) {
-      if (hay.includes(w)) console.log(`  ⚑ pagina conține: "${w}"`);
+  const dist: Record<string, number> = {};
+  const nullTitles: string[] = [];
+  for (const e of rows) {
+    let c = guessCategory(e.title, e.description);
+    if (!c) c = DEFAULTS[e.source?.name] ?? null;
+    const key = c ?? "—NULL—";
+    dist[key] = (dist[key] ?? 0) + 1;
+    if (!c) nullTitles.push(e.title.slice(0, 60));
+  }
+
+  console.log("=== DISTRIBUȚIE NOUĂ ===");
+  for (const k of Object.keys(dist).sort((a, b) => dist[b] - dist[a]))
+    console.log(`  ${String(dist[k]).padStart(3)}  ${k}`);
+
+  console.log("\n=== CAZURI DE CONTROL ===");
+  const checks = [
+    "Greatest Tits", "ZooTonic", "IOTA 5", "Curs de prim ajutor AVANSAT",
+    "Drumetie 6 zile", "Bonnie Tyler", "Rita Ora", "Danko Jones",
+    "AntiPORTRET DE FAMILIE", "Street Food", "Povestea Scufiței", "Workshop de dans Kathak",
+  ];
+  for (const q of checks) {
+    const e = rows.find((r) => r.title.toLowerCase().includes(q.toLowerCase()));
+    if (e) {
+      let c = guessCategory(e.title, e.description);
+      if (!c) c = DEFAULTS[e.source?.name] ?? null;
+      console.log(`  ${(c ?? "NULL").padEnd(10)} ← ${e.title.slice(0, 50)}`);
     }
-  } catch (err) {
-    console.log("eroare fetch:", (err as Error).message);
   }
-}
 
+  console.log(`\n=== RĂMÂN NULL (${nullTitles.length}) ===`);
+  nullTitles.forEach((t) => console.log("  " + t));
+}
 main();
