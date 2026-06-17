@@ -28,7 +28,7 @@ export function parsePriceFromText(
 // „Gratis" doar cu context clar de intrare/acces — NU pe orice „gratis" rătăcit
 // în text (ex. „parcare gratuită", „transport gratuit", „primii 10 gratis").
 const FREE_RE =
-  /\b(intrare[a]?|acces[ul]?|participare[a]?)\b[\s\wșțăîâ.,:–-]{0,18}?\b(liber[ăa]?|gratuit[ăa]?|gratis)\b|\bfree\s+(entry|admission)\b/i;
+  /\b(intrare[a]?|acces(?:ul)?|participare[a]?)\b[\s\wșțăîâ.,:–-]{0,24}?\b(liber[ăa]?|gratuit[ăa]?|gratis)\b|\bfree\s+(entry|admission)\b/i;
 const NOT_FREE_RE = /\bnu (?:e|este|sunt) (?:gratuit|gratis|liber)|contra cost\b/i;
 
 export function looksFree(text: string): boolean {

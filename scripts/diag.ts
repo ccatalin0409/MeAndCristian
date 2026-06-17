@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
+import { looksFree, parsePriceFromText } from "../src/lib/ingest/pricing";
 
 config({ path: ".env.local" });
 
@@ -8,67 +9,38 @@ const sb = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-function norm(s: string): string {
-  return s
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-function tokens(s: string): Set<string> {
-  return new Set(norm(s).split(" ").filter((w) => w.length > 2));
-}
-function jaccard(a: Set<string>, b: Set<string>): number {
-  const inter = [...a].filter((x) => b.has(x)).length;
-  const uni = new Set([...a, ...b]).size;
-  return uni ? inter / uni : 0;
-}
+// Orice mențiune „gratis/liber/free" (foarte permisiv) ca să vedem ce ratăm.
+const FREE_HINT = /\b(gratu\w*|gratis|liber[ăa]?|free|f[ăa]r[ăa] (bilet|tax|cost))\b/i;
 
 async function main() {
   const { data, error } = await sb
     .from("events")
-    .select(
-      "id, title, starts_at, is_free, price_min, price_max, description, external_id, source:sources(name)"
-    );
+    .select("title, description, is_free, price_min, price_max");
   if (error) {
     console.log("ERR", error.message);
     process.exit(1);
   }
   const rows = (data ?? []) as any[];
-  console.log("Total:", rows.length);
 
-  // === A. Toate cele marcate GRATIS — vedem daca sunt corecte ===
-  console.log("\n=== GRATIS (toate) ===");
-  for (const e of rows.filter((x) => x.is_free)) {
-    const d = (e.description || "").replace(/\s+/g, " ").slice(0, 120);
-    console.log(
-      `• [${e.source?.name}] "${e.title.slice(0, 55)}"\n    pmin=${e.price_min} pmax=${e.price_max} | desc: ${d}`
-    );
-  }
+  // Evenimente „necunoscute" (nu gratis, fără preț) dar care au indicii de gratuit.
+  const unknown = rows.filter(
+    (e) => !e.is_free && e.price_min == null && e.price_max == null
+  );
+  const missed = unknown.filter((e) => {
+    const text = `${e.title}\n${e.description ?? ""}`;
+    return FREE_HINT.test(text) && !parsePriceFromText(text);
+  });
 
-  // === B. Near-duplicate: aceeasi zi + similaritate titlu > 0.55 ===
-  console.log("\n=== NEAR-DUPLICATE (acelasi day, titluri similare) ===");
-  const seen = new Set<number>();
-  let pairs = 0;
-  for (let i = 0; i < rows.length; i++) {
-    for (let j = i + 1; j < rows.length; j++) {
-      const a = rows[i],
-        b = rows[j];
-      if ((a.starts_at || "").slice(0, 10) !== (b.starts_at || "").slice(0, 10))
-        continue;
-      const sim = jaccard(tokens(a.title), tokens(b.title));
-      if (sim >= 0.55 && norm(a.title) !== norm(b.title)) {
-        pairs++;
-        if (pairs <= 15)
-          console.log(
-            `  sim=${sim.toFixed(2)} [${a.source?.name}] "${a.title.slice(0, 40)}"  ⇄  [${b.source?.name}] "${b.title.slice(0, 40)}"`
-          );
-      }
-    }
+  console.log(
+    `Necunoscute: ${unknown.length} | cu indiciu de gratuit dar NEdetectate: ${missed.length}\n`
+  );
+  for (const e of missed) {
+    const text = `${e.title}\n${e.description ?? ""}`;
+    const m = text.match(FREE_HINT);
+    const i = m ? text.toLowerCase().indexOf(m[0].toLowerCase()) : 0;
+    const ctx = text.slice(Math.max(0, i - 35), i + 35).replace(/\s+/g, " ");
+    console.log(`• "${e.title.slice(0, 45)}"\n    …${ctx}… (looksFree=${looksFree(text)})`);
   }
-  console.log(`  Total perechi near-dup (titlu diferit): ${pairs}`);
 }
 
 main();
