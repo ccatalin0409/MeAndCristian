@@ -55,9 +55,13 @@ function quickRange(quick: QuickFilter): { from: Date; to: Date } {
   const today = startOfDay(new Date());
 
   if (quick === "tonight") {
+    // „Diseară" = tot ce e azi. Folosim începutul zilei (nu „acum"), fiindcă
+    // multe surse dau doar data (fără oră exactă, presupusă seara) — altfel
+    // evenimentele de azi ar „dispărea" după ora presupusă. Feed-ul taie oricum
+    // evenimentele deja trecute de câteva ore.
     const to = new Date(today);
     to.setDate(to.getDate() + 1);
-    return { from: new Date(), to }; // de acum până la finalul zilei
+    return { from: today, to };
   }
 
   if (quick === "tomorrow") {

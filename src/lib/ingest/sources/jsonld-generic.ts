@@ -6,7 +6,7 @@ import type { RawEvent, SourceAdapter } from "../types";
 import { politeFetch, sleep } from "../http";
 import { extractEvents } from "../jsonld";
 import { toBucharestISO } from "../datetime";
-import { guessCategory } from "../categorize";
+import { guessCategory, looksFree } from "../categorize";
 
 export interface JsonLdSourceConfig {
   key: string;
@@ -107,6 +107,11 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
               : null;
 
           const price = parsePrice(asOne(ld.offers)?.price);
+          // Gratuit dacă prețul e 0, sau dacă nu există preț dar textul spune
+          // „intrare liberă / gratuit".
+          const free =
+            price === 0 ||
+            (price == null && looksFree(ld.name, ld.description ?? null));
           const img = Array.isArray(ld.image) ? ld.image[0] : ld.image;
 
           out.push({
@@ -124,9 +129,9 @@ export function createJsonLdSource(config: JsonLdSourceConfig): SourceAdapter {
             startsAt,
             endsAt: ld.endDate ? toBucharestISO(ld.endDate, 23) : null,
             imageUrl: img ?? null,
-            priceMin: price,
-            priceMax: price,
-            isFree: price === 0,
+            priceMin: free ? 0 : price,
+            priceMax: free ? 0 : price,
+            isFree: free,
             venueName: place?.name?.trim() || config.label,
             venueAddress: venueAddress || null,
             citySlug,
