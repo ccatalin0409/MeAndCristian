@@ -40,7 +40,7 @@ export default function EventCardNew({ event, view, saved, onToggleSave }: Props
           className="absolute inset-0 w-full h-full object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-transparent" />
       <div className="relative flex items-start justify-between gap-2">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/40 backdrop-blur border border-white/20 text-[11px] font-bold text-white">
           <span className="w-[7px] h-[7px] rounded-full" style={{ background: color }} />
@@ -55,11 +55,6 @@ export default function EventCardNew({ event, view, saved, onToggleSave }: Props
           {formatPrice(event)}
         </span>
       </div>
-      {isGrid && (
-        <h3 className="relative font-display font-bold text-[19px] leading-[1.06] text-white [text-shadow:0_2px_18px_rgba(0,0,0,0.45)] text-balance">
-          {event.title}
-        </h3>
-      )}
     </div>
   );
 
@@ -69,11 +64,9 @@ export default function EventCardNew({ event, view, saved, onToggleSave }: Props
         isGrid ? "p-4" : "py-3.5 px-4 justify-center min-w-0 flex-1"
       }`}
     >
-      {!isGrid && (
-        <h3 className="font-display font-bold text-[17px] leading-tight text-balance line-clamp-2">
-          {event.title}
-        </h3>
-      )}
+      <h3 className="font-display font-bold text-[17px] leading-tight text-balance line-clamp-2">
+        {event.title}
+      </h3>
       <div className="inline-flex items-center gap-1.5 text-[13px] font-bold" style={{ color }}>
         <ClockIcon />
         {formatWhen(event.starts_at)}
