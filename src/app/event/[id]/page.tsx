@@ -36,15 +36,24 @@ export default async function EventPage({
 
   return (
     <main className="pb-6">
-      {/* Imagine mare */}
-      <div className="relative h-56 w-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+      {/* Imagine mare — poster pe fundal blurat, afișat integral (fără deformare) */}
+      <div className="relative w-full aspect-[16/10] sm:aspect-[2/1] max-h-[58vh] overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
         {event.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={event.image_url}
-            alt={event.title}
-            className="h-full w-full object-cover"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={event.image_url}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-50"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={event.image_url}
+              alt={event.title}
+              className="relative h-full w-auto max-w-full object-contain"
+            />
+          </>
         ) : (
           <span className="text-7xl select-none">{emoji}</span>
         )}

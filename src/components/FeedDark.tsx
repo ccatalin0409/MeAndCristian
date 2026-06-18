@@ -102,15 +102,22 @@ export default function FeedDark({ events, categories }: Props) {
 
 /* ---- Hero ---- */
 function Hero({ event, saved, onSave }: { event: EventWithRelations; saved: boolean; onSave: () => void }) {
+  const [imgBroken, setImgBroken] = useState(false);
+  const showImg = !!event.image_url && !imgBroken;
   return (
     <div
       className="relative overflow-hidden rounded-3xl p-6 sm:p-9 min-h-[248px] flex"
-      style={
-        event.image_url
-          ? { backgroundImage: `url(${event.image_url})`, backgroundSize: "cover", backgroundPosition: "center" }
-          : { background: catGradient(event.category?.slug) }
-      }
+      style={!showImg ? { background: catGradient(event.category?.slug) } : undefined}
     >
+      {showImg && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={event.image_url!}
+          alt=""
+          onError={() => setImgBroken(true)}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
       <div className="absolute inset-0" style={{ background: "linear-gradient(90deg,rgba(8,6,14,0.86) 0%,rgba(8,6,14,0.45) 55%,rgba(8,6,14,0.12) 100%)" }} />
       <div className="relative flex flex-col justify-between gap-6 w-full">
         <div className="flex items-center gap-2.5">

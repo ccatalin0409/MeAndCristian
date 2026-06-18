@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import type { EventWithRelations } from "@/types";
 import { formatPrice, formatWhen } from "@/lib/format";
@@ -18,18 +19,27 @@ export default function EventCardNew({ event, view, saved, onToggleSave }: Props
   const color = catColor(cat);
   const free = event.is_free;
   const isGrid = view === "grid";
+  const [imgBroken, setImgBroken] = useState(false);
+  const showImg = !!event.image_url && !imgBroken;
 
   const poster = (
     <div
       className={`relative flex flex-col justify-between overflow-hidden ${
         isGrid ? "h-52 p-3.5" : "w-32 sm:w-40 shrink-0 self-stretch min-h-[140px] p-3"
       }`}
-      style={
-        event.image_url
-          ? { backgroundImage: `url(${event.image_url})`, backgroundSize: "cover", backgroundPosition: "center" }
-          : { background: catGradient(cat) }
-      }
+      style={!showImg ? { background: catGradient(cat) } : undefined}
     >
+      {showImg && (
+        // <img> (nu background-image) — tolerează URL-urile iaBilet cu paranteze.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={event.image_url!}
+          alt=""
+          loading="lazy"
+          onError={() => setImgBroken(true)}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60" />
       <div className="relative flex items-start justify-between gap-2">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/40 backdrop-blur border border-white/20 text-[11px] font-bold text-white">
