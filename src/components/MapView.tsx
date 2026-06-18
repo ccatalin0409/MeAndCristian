@@ -1,12 +1,37 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
+import "@maplibre/maplibre-gl-leaflet";
 import type { EventWithRelations } from "@/types";
 import type { UserLocation } from "@/lib/filters";
 import { formatPrice, formatWhen } from "@/lib/format";
+
+// Strat vectorial OpenFreeMap (gratis, fără cheie) randat cu MapLibre GL în
+// interiorul hărții Leaflet — păstrăm pinii/popup-urile Leaflet de mai jos.
+const OPENFREEMAP_DARK = "https://tiles.openfreemap.org/styles/dark";
+
+function VectorBasemap() {
+  const map = useMap();
+  useEffect(() => {
+    const layer = (L as typeof L & {
+      maplibreGL: (o: { style: string; attribution?: string }) => L.Layer;
+    }).maplibreGL({
+      style: OPENFREEMAP_DARK,
+      attribution:
+        '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    });
+    layer.addTo(map);
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [map]);
+  return null;
+}
 
 // Pin custom (divIcon) ca să evităm problemele cu imaginile implicite Leaflet în Next.
 const pinIcon = L.divIcon({
@@ -57,12 +82,7 @@ export default function MapView({
         scrollWheelZoom
         style={{ height: "100%", width: "100%" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          subdomains="abcd"
-          maxZoom={20}
-        />
+        <VectorBasemap />
 
         {userLocation && (
           <Marker
