@@ -1,14 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Space_Grotesk, DM_Sans, Space_Mono } from "next/font/google";
 import "./globals.css";
-import BottomNav from "@/components/BottomNav";
+import AppShell from "@/components/shell/AppShell";
 import InlineScript from "@/components/InlineScript";
 import InstallPrompt from "@/components/InstallPrompt";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const grotesk = Space_Grotesk({
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-grotesk",
+});
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-dm",
+});
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-space-mono",
 });
 
 export const metadata: Metadata = {
@@ -62,20 +73,19 @@ export default function RootLayout({
   return (
     <html
       lang="ro"
-      data-theme="light"
+      data-theme="dark"
       suppressHydrationWarning
-      className={`${geistSans.variable} h-full antialiased`}
+      className={`${grotesk.variable} ${dmSans.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <head>
         {/* Rulează sincron, înainte ca pagina să se deseneze: aplică tema
-            salvată (sau preferința sistemului) ca să nu apară un flash alb. */}
+            salvată; implicit „dark" (designul nou). */}
         <InlineScript
-          html={`(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}document.documentElement.setAttribute("data-theme",t);}catch(e){}})()`}
+          html={`(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t="dark";}document.documentElement.setAttribute("data-theme",t);}catch(e){}})()`}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground pt-safe">
-        <div className="flex-1 w-full max-w-2xl mx-auto pb-nav">{children}</div>
-        <BottomNav />
+      <body className="min-h-full bg-background text-foreground">
+        <AppShell>{children}</AppShell>
         <InstallPrompt />
         <ServiceWorkerRegister />
       </body>
