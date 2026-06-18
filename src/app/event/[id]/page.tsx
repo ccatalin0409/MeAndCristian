@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getEventById } from "@/lib/events";
 import { formatFullDate, formatPrice, formatTime } from "@/lib/format";
 import SaveButton from "@/components/SaveButton";
+import ShareButton from "@/components/ShareButton";
 import EventMiniMap from "@/components/EventMiniMap";
 
 export const dynamic = "force-dynamic";
@@ -124,6 +125,10 @@ export default async function EventPage({
             </a>
           )}
           <SaveButton eventId={event.id} />
+          <ShareButton
+            title={event.title}
+            text={`${event.title}${event.venue ? ` · ${event.venue.name}` : ""}`}
+          />
         </div>
       </div>
     </main>
