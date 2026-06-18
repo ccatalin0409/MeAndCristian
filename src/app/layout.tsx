@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, DM_Sans, Space_Mono } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/shell/AppShell";
-import InlineScript from "@/components/InlineScript";
 import InstallPrompt from "@/components/InstallPrompt";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
@@ -77,13 +76,6 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${grotesk.variable} ${dmSans.variable} ${spaceMono.variable} h-full antialiased`}
     >
-      <head>
-        {/* Rulează sincron, înainte ca pagina să se deseneze: aplică tema
-            salvată; implicit „dark" (designul nou). */}
-        <InlineScript
-          html={`(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t="dark";}document.documentElement.setAttribute("data-theme",t);}catch(e){}})()`}
-        />
-      </head>
       <body className="min-h-full bg-background text-foreground">
         <AppShell>{children}</AppShell>
         <InstallPrompt />
