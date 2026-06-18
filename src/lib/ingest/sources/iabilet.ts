@@ -107,6 +107,20 @@ function mapEvent(ld: LdEvent): RawEvent | null {
   };
 }
 
+async function enrichDescription(ev: RawEvent): Promise<void> {
+  if (!ev.ticketUrl) return;
+  try {
+    const html = await politeFetch(ev.ticketUrl);
+    const lds = extractEvents(html) as LdEvent[];
+    const fullDesc = cleanText(lds[0]?.description);
+    if (fullDesc && fullDesc.length > (ev.description?.length ?? 0)) {
+      ev.description = fullDesc;
+    }
+  } catch {
+    // pagina individuală indisponibilă — păstrăm descrierea din listing
+  }
+}
+
 export const iabilet: SourceAdapter = {
   key: "iabilet",
   label: "iaBilet",
@@ -138,9 +152,14 @@ export const iabilet: SourceAdapter = {
         addedThisPage++;
       }
 
-      // Dacă o pagină nu aduce nimic nou, ne oprim (paginare epuizată).
       if (addedThisPage === 0) break;
       if (page < maxPages) await sleep(1500);
+    }
+
+    // Îmbogățim descrierile cu cele complete de pe paginile individuale.
+    for (let i = 0; i < events.length; i++) {
+      await enrichDescription(events[i]);
+      if (i < events.length - 1) await sleep(400);
     }
 
     return events;

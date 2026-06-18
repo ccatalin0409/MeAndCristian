@@ -54,7 +54,7 @@ export default function EventRow({ event }: { event: EventWithRelations }) {
         )}
 
         {event.description && (
-          <p className="mt-1 text-sm text-muted line-clamp-2">
+          <p className="mt-1 text-sm text-muted line-clamp-3">
             {event.description}
           </p>
         )}
