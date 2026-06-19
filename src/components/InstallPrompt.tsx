@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
-// Eveniment specific Chrome/Edge/Android pentru instalarea PWA.
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -14,7 +13,6 @@ function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
-    // iOS Safari
     (window.navigator as unknown as { standalone?: boolean }).standalone === true
   );
 }
@@ -27,22 +25,20 @@ function isIOS(): boolean {
 export default function InstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIOS, setShowIOS] = useState(false);
-  const [dismissed, setDismissed] = useState(true); // pornim ascuns până verificăm
+  const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    if (isStandalone()) return; // deja instalat
+    if (isStandalone()) return;
     if (localStorage.getItem(DISMISS_KEY) === "1") return;
 
     setDismissed(false);
 
-    // Android / Chrome / Edge: prindem evenimentul și afișăm butonul nostru.
     const onBIP = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
     };
     window.addEventListener("beforeinstallprompt", onBIP);
 
-    // iOS Safari nu emite evenimentul — arătăm instrucțiuni.
     if (isIOS()) setShowIOS(true);
 
     return () => window.removeEventListener("beforeinstallprompt", onBIP);
@@ -52,9 +48,7 @@ export default function InstallPrompt() {
     setDismissed(true);
     try {
       localStorage.setItem(DISMISS_KEY, "1");
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
 
   async function install() {
@@ -82,8 +76,7 @@ export default function InstallPrompt() {
             </p>
           ) : (
             <p className="text-xs text-muted">
-              Apasă <span aria-hidden>⎙</span> Partajează, apoi „Adaugă pe ecranul
-              principal".
+              Apasă Partajează, apoi „Adaugă pe ecranul principal".
             </p>
           )}
         </div>
