@@ -1,17 +1,42 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
+import "@maplibre/maplibre-gl-leaflet";
 import type { EventWithRelations } from "@/types";
 import type { UserLocation } from "@/lib/filters";
 import { formatPrice, formatWhen } from "@/lib/format";
 
+// Strat vectorial OpenFreeMap (gratis, fără cheie) randat cu MapLibre GL în
+// interiorul hărții Leaflet — păstrăm pinii/popup-urile Leaflet de mai jos.
+const OPENFREEMAP_DARK = "https://tiles.openfreemap.org/styles/dark";
+
+function VectorBasemap() {
+  const map = useMap();
+  useEffect(() => {
+    const layer = (L as typeof L & {
+      maplibreGL: (o: { style: string; attribution?: string }) => L.Layer;
+    }).maplibreGL({
+      style: OPENFREEMAP_DARK,
+      attribution:
+        '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    });
+    layer.addTo(map);
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [map]);
+  return null;
+}
+
 // Pin custom (divIcon) ca să evităm problemele cu imaginile implicite Leaflet în Next.
 const pinIcon = L.divIcon({
   className: "",
-  html: `<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;background:#6d28d9;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
+  html: `<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;background:linear-gradient(140deg,#a78bfa,#7c5cfc);transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 8px rgba(124,92,252,.55)"></div>`,
   iconSize: [26, 26],
   iconAnchor: [13, 24],
   popupAnchor: [0, -22],
@@ -19,7 +44,7 @@ const pinIcon = L.divIcon({
 
 const meIcon = L.divIcon({
   className: "",
-  html: `<div style="width:16px;height:16px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 4px rgba(37,99,235,.3)"></div>`,
+  html: `<div style="width:16px;height:16px;border-radius:50%;background:#38bdf8;border:3px solid #fff;box-shadow:0 0 0 5px rgba(56,189,248,.3)"></div>`,
   iconSize: [16, 16],
   iconAnchor: [8, 8],
 });
@@ -48,17 +73,16 @@ export default function MapView({
     : BUCHAREST;
 
   return (
-    <div className={`${heightClass} rounded-2xl overflow-hidden border border-border`}>
+    // isolate → ține z-index-urile interne Leaflet (până la 1000) în propriul
+    // context de stacking, ca să nu acopere header-ul/bottom-nav-ul aplicației.
+    <div className={`${heightClass} relative isolate rounded-2xl overflow-hidden border border-border`}>
       <MapContainer
         center={center}
         zoom={zoom}
         scrollWheelZoom
         style={{ height: "100%", width: "100%" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <VectorBasemap />
 
         {userLocation && (
           <Marker

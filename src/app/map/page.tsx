@@ -16,13 +16,15 @@ export default async function MapPage() {
   ]);
 
   return (
-    <main className="px-4 pt-4">
-      <header className="mb-3">
-        <h1 className="text-2xl font-bold tracking-tight">Hartă</h1>
-        <p className="text-sm text-muted">Evenimentele din București pe hartă</p>
+    <div className="flex flex-col gap-4">
+      <header>
+        <h1 className="font-display font-bold tracking-tight text-3xl">Hartă</h1>
+        <p className="text-sm text-muted mt-1">
+          Evenimentele din București pe hartă
+        </p>
       </header>
 
       <MapClient events={events} categories={categories} />
-    </main>
+    </div>
   );
 }
