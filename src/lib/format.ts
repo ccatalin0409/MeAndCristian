@@ -57,6 +57,17 @@ export function formatWhen(iso: string): string {
   return `${formatDayLabel(iso)} · ${formatTime(iso)}`;
 }
 
+// Returnează true dacă evenimentul e în desfășurare chiar acum.
+// Dacă ends_at lipsește, considerăm o durată implicită de 3 ore.
+export function isLive(e: EventWithRelations): boolean {
+  const now = Date.now();
+  const start = new Date(e.starts_at).getTime();
+  const end = e.ends_at
+    ? new Date(e.ends_at).getTime()
+    : start + 3 * 60 * 60 * 1000;
+  return now >= start && now <= end;
+}
+
 // „Gratis", „120 lei", „120–250 lei", „Preț pe site" (când nu-l știm).
 export function formatPrice(e: EventWithRelations): string {
   if (e.is_free) return "Gratis";

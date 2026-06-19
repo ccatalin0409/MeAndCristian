@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { EventWithRelations } from "@/types";
-import { formatPrice, formatWhen } from "@/lib/format";
+import { formatPrice, formatWhen, isLive } from "@/lib/format";
 import { CATEGORY_EMOJI } from "@/components/EventCard";
 
 // Rând detaliat pentru modul „Listă": orizontal, pe toată lățimea,
 // cu miniatură + mai multe detalii (loc, descriere) decât cardul din grilă.
 export default function EventRow({ event }: { event: EventWithRelations }) {
   const emoji = event.category ? CATEGORY_EMOJI[event.category.slug] ?? "📍" : "📍";
+  const live = isLive(event);
 
   return (
     <Link
@@ -59,7 +60,16 @@ export default function EventRow({ event }: { event: EventWithRelations }) {
           </p>
         )}
 
-        <div className="mt-1.5 flex gap-2">
+        <div className="mt-1.5 flex gap-2 flex-wrap">
+          {live && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: "rgba(239,68,68,0.92)" }}>
+              <span className="relative flex w-[6px] h-[6px]">
+                <span className="absolute inline-flex w-full h-full rounded-full bg-white opacity-75 animate-ping" />
+                <span className="relative inline-flex w-[6px] h-[6px] rounded-full bg-white" />
+              </span>
+              LIVE
+            </span>
+          )}
           {event.is_promoted && (
             <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent text-white">
               Promovat

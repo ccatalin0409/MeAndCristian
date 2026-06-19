@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { EventWithRelations } from "@/types";
-import { formatPrice, formatWhen } from "@/lib/format";
+import { formatPrice, formatWhen, isLive } from "@/lib/format";
 import { catColor, catGradient } from "@/lib/categoryStyle";
 
 interface Props {
@@ -21,6 +21,7 @@ export default function EventCardNew({ event, view, saved, onToggleSave }: Props
   const isGrid = view === "grid";
   const [imgBroken, setImgBroken] = useState(false);
   const showImg = !!event.image_url && !imgBroken;
+  const live = isLive(event);
 
   const poster = (
     <div
@@ -42,10 +43,21 @@ export default function EventCardNew({ event, view, saved, onToggleSave }: Props
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-transparent" />
       <div className="relative flex items-start justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/40 backdrop-blur border border-white/20 text-[11px] font-bold text-white">
-          <span className="w-[7px] h-[7px] rounded-full" style={{ background: color }} />
-          {catName}
-        </span>
+        <div className="flex flex-col gap-1.5">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/40 backdrop-blur border border-white/20 text-[11px] font-bold text-white">
+            <span className="w-[7px] h-[7px] rounded-full" style={{ background: color }} />
+            {catName}
+          </span>
+          {live && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold text-white" style={{ background: "rgba(239,68,68,0.92)" }}>
+              <span className="relative flex w-[7px] h-[7px]">
+                <span className="absolute inline-flex w-full h-full rounded-full bg-white opacity-75 animate-ping" />
+                <span className="relative inline-flex w-[7px] h-[7px] rounded-full bg-white" />
+              </span>
+              LIVE
+            </span>
+          )}
+        </div>
         <span
           className={`px-2.5 py-1.5 rounded-full font-mono text-[11px] font-bold whitespace-nowrap ${
             free ? "text-[#06281c]" : "text-white border border-white/20 bg-black/40 backdrop-blur"

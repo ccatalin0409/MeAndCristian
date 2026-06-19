@@ -6,7 +6,7 @@ import type { Category, EventWithRelations } from "@/types";
 import { EMPTY_FILTERS } from "@/lib/filters";
 import { useEventFilters } from "@/lib/useEventFilters";
 import { useSavedEvents } from "@/lib/useSavedEvents";
-import { formatPrice, formatWhen } from "@/lib/format";
+import { formatPrice, formatWhen, isLive } from "@/lib/format";
 import { catGradient } from "@/lib/categoryStyle";
 import EventCardNew from "@/components/EventCardNew";
 import EventFilters from "@/components/EventFilters";
@@ -104,6 +104,7 @@ export default function FeedDark({ events, categories }: Props) {
 function Hero({ event, saved, onSave }: { event: EventWithRelations; saved: boolean; onSave: () => void }) {
   const [imgBroken, setImgBroken] = useState(false);
   const showImg = !!event.image_url && !imgBroken;
+  const live = isLive(event);
   return (
     <div
       className="relative overflow-hidden rounded-3xl p-6 sm:p-9 min-h-[248px] flex"
@@ -120,13 +121,22 @@ function Hero({ event, saved, onSave }: { event: EventWithRelations; saved: bool
       )}
       <div className="absolute inset-0" style={{ background: "linear-gradient(90deg,rgba(8,6,14,0.86) 0%,rgba(8,6,14,0.45) 55%,rgba(8,6,14,0.12) 100%)" }} />
       <div className="relative flex flex-col justify-between gap-6 w-full">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold text-white" style={{ background: "rgba(255,75,75,0.92)" }}>
             <span className="w-[7px] h-[7px] rounded-full bg-white" /> RECOMANDAT AZI
           </span>
           <span className="px-3 py-1.5 rounded-full bg-black/40 backdrop-blur border border-white/15 text-[12px] font-semibold text-white">
             {event.category?.name ?? "Eveniment"}
           </span>
+          {live && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold text-white" style={{ background: "rgba(239,68,68,0.92)" }}>
+              <span className="relative flex w-[7px] h-[7px]">
+                <span className="absolute inline-flex w-full h-full rounded-full bg-white opacity-75 animate-ping" />
+                <span className="relative inline-flex w-[7px] h-[7px] rounded-full bg-white" />
+              </span>
+              LIVE
+            </span>
+          )}
         </div>
         <div>
           <h2 className="font-display font-bold text-white text-2xl sm:text-[40px] leading-[1.02] tracking-tight max-w-2xl text-balance [text-shadow:0_2px_24px_rgba(0,0,0,0.6)]">
