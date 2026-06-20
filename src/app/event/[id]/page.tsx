@@ -4,6 +4,7 @@ import { getEventById } from "@/lib/events";
 import { formatFullDate, formatPrice, formatTime } from "@/lib/format";
 import SaveButton from "@/components/SaveButton";
 import ShareButton from "@/components/ShareButton";
+import NavigateButton from "@/components/NavigateButton";
 import EventMiniMap from "@/components/EventMiniMap";
 
 export const dynamic = "force-dynamic";
@@ -134,6 +135,14 @@ export default async function EventPage({
             </a>
           )}
           <SaveButton eventId={event.id} />
+          {event.venue && (
+            <NavigateButton
+              lat={event.venue.lat}
+              lng={event.venue.lng}
+              venueName={event.venue.name}
+              venueAddress={event.venue.address}
+            />
+          )}
           <ShareButton
             title={event.title}
             text={`${event.title}${event.venue ? ` · ${event.venue.name}` : ""}`}
