@@ -12,20 +12,17 @@ function buildUrl(lat: number | null | undefined, lng: number | null | undefined
   const hasCoords = lat != null && lng != null;
 
   if (/iphone|ipad|ipod/i.test(ua)) {
-    // iOS — Apple Maps cu picker nativ de aplicație
     return hasCoords
       ? `maps://maps.apple.com/?daddr=${lat},${lng}`
       : `maps://maps.apple.com/?q=${encodeURIComponent(label)}`;
   }
 
   if (/android/i.test(ua)) {
-    // Android — geo: URI deschide picker-ul nativ (Google Maps, Waze etc.)
     return hasCoords
       ? `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(label)})`
       : `geo:0,0?q=${encodeURIComponent(label)}`;
   }
 
-  // Desktop — Google Maps în browser
   const dest = hasCoords ? `${lat},${lng}` : encodeURIComponent(label);
   return `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
 }
@@ -36,7 +33,14 @@ export default function NavigateButton({ lat, lng, venueName, venueAddress }: Pr
 
   function handleNavigate() {
     const url = buildUrl(lat, lng, label);
-    window.open(url, "_blank", "noopener,noreferrer");
+    // window.open e blocat de popup-blocker — folosim un <a> real
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   return (
