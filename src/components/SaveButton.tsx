@@ -30,10 +30,10 @@ export default function SaveButton({
       type="button"
       onClick={() => toggle(eventId)}
       disabled={!ready}
-      className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-medium border transition-colors ${
+      className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-medium border transition-all ${
         saved
           ? "bg-accent/10 text-accent border-accent hover:bg-accent/20"
-          : "bg-surface text-foreground border-border hover:border-primary/40 hover:bg-primary/5"
+          : "bg-surface text-foreground border-border hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_4px_16px_rgba(124,92,252,0.25)]"
       }`}
     >
       <Heart filled={saved} />

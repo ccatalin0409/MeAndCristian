@@ -129,7 +129,7 @@ export default async function EventPage({
               href={event.ticket_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-full py-3 rounded-xl font-semibold bg-primary text-primary-foreground transition-colors hover:bg-primary/85 active:bg-primary/75"
+              className="flex items-center justify-center w-full py-3 rounded-xl font-semibold bg-primary text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(124,92,252,0.45)] active:translate-y-0"
             >
               Bilete →
             </a>
