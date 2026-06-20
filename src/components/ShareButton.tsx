@@ -36,7 +36,7 @@ export default function ShareButton({ title, text }: Props) {
   return (
     <button
       onClick={handleShare}
-      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold border border-border bg-surface text-foreground"
+      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold border border-border bg-surface text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5"
     >
       {copied ? (
         <>

@@ -32,8 +32,8 @@ export default function SaveButton({
       disabled={!ready}
       className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-medium border transition-colors ${
         saved
-          ? "bg-accent/10 text-accent border-accent"
-          : "bg-surface text-foreground border-border"
+          ? "bg-accent/10 text-accent border-accent hover:bg-accent/20"
+          : "bg-surface text-foreground border-border hover:border-primary/40 hover:bg-primary/5"
       }`}
     >
       <Heart filled={saved} />

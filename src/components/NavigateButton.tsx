@@ -46,7 +46,7 @@ export default function NavigateButton({ lat, lng, venueName, venueAddress }: Pr
   return (
     <button
       onClick={handleNavigate}
-      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold border border-border bg-surface text-foreground"
+      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold border border-border bg-surface text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5"
     >
       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12Z" />
