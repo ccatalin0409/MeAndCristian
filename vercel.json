@@ -3,6 +3,10 @@
     {
       "path": "/api/ingest",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/push/send",
+      "schedule": "0 * * * *"
     }
   ]
 }

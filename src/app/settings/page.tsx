@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ThemeSelect from "@/components/ThemeSelect";
+import PushToggle from "@/components/PushToggle";
 
 export const metadata: Metadata = {
   title: "Setări — Ce fac în oraș",
@@ -21,6 +22,7 @@ export default function SettingsPage() {
           </div>
           <ThemeSelect />
         </div>
+        <PushToggle />
       </div>
     </main>
   );
